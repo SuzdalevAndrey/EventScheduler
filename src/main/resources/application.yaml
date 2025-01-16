@@ -6,3 +6,9 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+
+jwt:
+  life-time: #Время жизни токена в минутах
+    access: 15
+    refresh: 1440
+  secret: 6yU3AaLTrj/YSKQtYF6yU3/YSKAaLTIv9aRtGxOcU39h7T/aRtGxO+syA=

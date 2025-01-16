@@ -1,7 +1,7 @@
 package ru.andreyszdlv.eventscheduler.repository;
 
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import ru.andreyszdlv.eventscheduler.model.User;
 
 import java.sql.PreparedStatement;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -40,5 +41,13 @@ public class UserRepository {
 
         user.setId(keyHolder.getKey().longValue());
         return user;
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return Optional.ofNullable(jdbcTemplate.queryForObject(
+                "SELECT * FROM users WHERE email=?",
+                new Object[]{email},
+                new BeanPropertyRowMapper<>(User.class)
+        ));
     }
 }
