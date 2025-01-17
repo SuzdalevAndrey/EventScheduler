@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.andreyszdlv.eventscheduler.dto.auth.LoginUserRequestDto;
-import ru.andreyszdlv.eventscheduler.dto.auth.LoginUserResponseDto;
-import ru.andreyszdlv.eventscheduler.dto.auth.RegisterUserRequestDto;
-import ru.andreyszdlv.eventscheduler.dto.auth.RegisterUserResponseDto;
+import ru.andreyszdlv.eventscheduler.dto.auth.*;
 import ru.andreyszdlv.eventscheduler.service.AuthService;
 import ru.andreyszdlv.eventscheduler.validation.RequestValidator;
 
@@ -31,22 +28,32 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterUserResponseDto> register(
-            @RequestBody @Valid RegisterUserRequestDto requestDto,
+            @RequestBody @Valid RegisterUserRequestDto registerUserDto,
             BindingResult bindingResult) throws BindException {
 
-        log.info("Registering user: {}", requestDto);
+        log.info("Registering user: {}", registerUserDto.email());
         requestValidator.validate(bindingResult);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerUser(requestDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerUser(registerUserDto));
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginUserResponseDto> login(
-            @RequestBody @Valid LoginUserRequestDto requestDto,
+            @RequestBody @Valid LoginUserRequestDto loginUserDto,
             BindingResult bindingResult) throws BindException {
 
        requestValidator.validate(bindingResult);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.loginUser(requestDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.loginUser(loginUserDto));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponseDto> refreshToken(
+            @RequestBody @Valid RefreshRequestDto refreshTokenDto,
+            BindingResult bindingResult) throws BindException {
+
+        requestValidator.validate(bindingResult);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.refreshToken(refreshTokenDto));
     }
 }

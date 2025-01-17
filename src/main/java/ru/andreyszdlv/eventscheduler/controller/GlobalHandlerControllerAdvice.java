@@ -8,13 +8,14 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import ru.andreyszdlv.eventscheduler.exception.InvalidRefreshTokenException;
 import ru.andreyszdlv.eventscheduler.exception.UserAlreadyRegisterException;
 
 import java.util.Locale;
 
 @ControllerAdvice
 @RequiredArgsConstructor
-public class GlobalExceptionControllerAdvice {
+public class GlobalHandlerControllerAdvice {
 
     private final MessageSource messageSource;
 
@@ -42,6 +43,19 @@ public class GlobalExceptionControllerAdvice {
         response.setProperty(
                 "errors",
                 ex.getAllErrors().stream().map(ObjectError::getDefaultMessage).toList()
+        );
+
+        return response;
+    }
+
+    @ExceptionHandler({
+            InvalidRefreshTokenException.class
+    })
+    public ProblemDetail handleUnauthorizedException(RuntimeException ex, Locale locale) {
+
+        ProblemDetail response = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), locale)
         );
 
         return response;

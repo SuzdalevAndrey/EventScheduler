@@ -1,6 +1,8 @@
 package ru.andreyszdlv.eventscheduler.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -16,6 +18,7 @@ import java.util.function.Function;
 @Service
 @Slf4j
 public class DefaultJwtService implements JwtService {
+
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
@@ -32,13 +35,13 @@ public class DefaultJwtService implements JwtService {
     @Override
     public String generateAccessToken(String email) {
         log.info("Executing generateAccessToken in JwtSecurityService");
-        return generateToken(email, lifeTimeAccessTokenInMinutes);
+        return generateToken(email, (long) lifeTimeAccessTokenInMinutes * 60 * 1000);
     }
 
     @Override
     public String generateRefreshToken(String email) {
         log.info("Executing generateRefreshToken in JwtSecurityService");
-        return generateToken(email, lifeTimeRefreshTokenInMinutes);
+        return generateToken(email, (long) lifeTimeRefreshTokenInMinutes * 60 * 1000);
     }
 
     @Override
@@ -50,8 +53,12 @@ public class DefaultJwtService implements JwtService {
     @Override
     public void validateToken(String token) throws InvalidTokenException {
         log.info("Validate token in JwtSecurityService");
-        if(!extractExpiration(token).before(new Date()))
+        try {
+            extractExpiration(token);
+        }
+        catch (JwtException e){
             throw new InvalidTokenException();
+        }
     }
 
     private String generateToken(String email, long lifeTime) {

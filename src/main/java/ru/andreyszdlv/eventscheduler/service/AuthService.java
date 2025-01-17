@@ -7,10 +7,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.andreyszdlv.eventscheduler.dto.auth.LoginUserRequestDto;
-import ru.andreyszdlv.eventscheduler.dto.auth.LoginUserResponseDto;
-import ru.andreyszdlv.eventscheduler.dto.auth.RegisterUserRequestDto;
-import ru.andreyszdlv.eventscheduler.dto.auth.RegisterUserResponseDto;
+import org.springframework.transaction.annotation.Transactional;
+import ru.andreyszdlv.eventscheduler.dto.auth.*;
+import ru.andreyszdlv.eventscheduler.exception.InvalidRefreshTokenException;
+import ru.andreyszdlv.eventscheduler.exception.InvalidTokenException;
 import ru.andreyszdlv.eventscheduler.exception.UserAlreadyRegisterException;
 import ru.andreyszdlv.eventscheduler.mapper.UserMapper;
 import ru.andreyszdlv.eventscheduler.model.User;
@@ -31,6 +31,7 @@ public class AuthService {
 
     private final JwtService jwtService;
 
+    @Transactional
     public RegisterUserResponseDto registerUser(RegisterUserRequestDto requestDto) {
 
         if(userRepository.existsByEmail(requestDto.email())) {
@@ -44,6 +45,7 @@ public class AuthService {
         return userMapper.toRegisterUserResponseDto(userRepository.save(user));
     }
 
+    @Transactional
     public LoginUserResponseDto loginUser(LoginUserRequestDto requestDto) {
         log.info("loginUser for email: {}", requestDto.email());
         Authentication authentication = authenticationManager.authenticate(
@@ -60,5 +62,23 @@ public class AuthService {
 
         log.info("User login successfully with email: {}", requestDto.email());
         return new LoginUserResponseDto(accessToken, refreshToken);
+    }
+
+    public RefreshResponseDto refreshToken(RefreshRequestDto refreshTokenDto) {
+
+        String refreshToken = refreshTokenDto.refreshToken();
+
+        try {
+            jwtService.validateToken(refreshToken);
+        } catch (InvalidTokenException e) {
+            throw new InvalidRefreshTokenException("error.401.refresh-token.invalid");
+        }
+
+        String email = jwtService.extractEmail(refreshToken);
+
+        return RefreshResponseDto.builder()
+                .accessToken(jwtService.generateAccessToken(email))
+                .refreshToken(jwtService.generateRefreshToken(email))
+                .build();
     }
 }
