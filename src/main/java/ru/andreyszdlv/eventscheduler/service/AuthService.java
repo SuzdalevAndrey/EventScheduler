@@ -17,8 +17,8 @@ import ru.andreyszdlv.eventscheduler.model.User;
 import ru.andreyszdlv.eventscheduler.repository.UserRepository;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -32,22 +32,28 @@ public class AuthService {
     private final JwtService jwtService;
 
     @Transactional
-    public RegisterUserResponseDto registerUser(RegisterUserRequestDto requestDto) {
+    public RegisterUserResponseDto registerUser(RegisterUserRequestDto registerUserDto) {
+        String userEmail = registerUserDto.email();
+        log.info("Registering new user with email: {}", userEmail);
 
-        if(userRepository.existsByEmail(requestDto.email())) {
+        log.info("Checking user exists with email {}", userEmail);
+        if(userRepository.existsByEmail(userEmail)) {
+            log.error("User with email {} already exists", userEmail);
             throw new UserAlreadyRegisterException("error.409.user.already_exists");
         }
 
-        User user = userMapper.toEntity(requestDto);
+        User user = userMapper.toEntity(registerUserDto);
 
-        user.setPassword(passwordEncoder.encode(requestDto.password()));
+        user.setPassword(passwordEncoder.encode(registerUserDto.password()));
 
+        log.info("User with email: {} registered successfully", userEmail);
         return userMapper.toRegisterUserResponseDto(userRepository.save(user));
     }
 
     @Transactional
     public LoginUserResponseDto loginUser(LoginUserRequestDto requestDto) {
-        log.info("loginUser for email: {}", requestDto.email());
+        log.info("Logging user with email: {}", requestDto.email());
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         requestDto.email(),
@@ -65,17 +71,20 @@ public class AuthService {
     }
 
     public RefreshResponseDto refreshToken(RefreshRequestDto refreshTokenDto) {
+        log.info("Refreshing token");
 
         String refreshToken = refreshTokenDto.refreshToken();
 
         try {
             jwtService.validateToken(refreshToken);
         } catch (InvalidTokenException e) {
+            log.error("This refresh token invalid");
             throw new InvalidRefreshTokenException("error.401.refresh-token.invalid");
         }
 
         String email = jwtService.extractEmail(refreshToken);
 
+        log.info("Token refresh successfully for user: {}", email);
         return RefreshResponseDto.builder()
                 .accessToken(jwtService.generateAccessToken(email))
                 .refreshToken(jwtService.generateRefreshToken(email))

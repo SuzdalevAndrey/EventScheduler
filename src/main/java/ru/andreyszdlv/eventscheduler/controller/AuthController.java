@@ -16,10 +16,10 @@ import ru.andreyszdlv.eventscheduler.dto.auth.*;
 import ru.andreyszdlv.eventscheduler.service.AuthService;
 import ru.andreyszdlv.eventscheduler.validation.RequestValidator;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -30,30 +30,41 @@ public class AuthController {
     public ResponseEntity<RegisterUserResponseDto> register(
             @RequestBody @Valid RegisterUserRequestDto registerUserDto,
             BindingResult bindingResult) throws BindException {
+        log.info("Received request register user with email: {}", registerUserDto.email());
 
-        log.info("Registering user: {}", registerUserDto.email());
         requestValidator.validate(bindingResult);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerUser(registerUserDto));
+        RegisterUserResponseDto responseDto = authService.registerUser(registerUserDto);
+
+        log.info("User with email: {} and id: {} registered successfully", responseDto.email(), responseDto.id());
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginUserResponseDto> login(
             @RequestBody @Valid LoginUserRequestDto loginUserDto,
             BindingResult bindingResult) throws BindException {
+        log.info("Received request login user with email: {}", loginUserDto.email());
 
-       requestValidator.validate(bindingResult);
+        requestValidator.validate(bindingResult);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.loginUser(loginUserDto));
+        LoginUserResponseDto responseDto = authService.loginUser(loginUserDto);
+
+        log.info("User with email: {} logged successfully", loginUserDto.email());
+        return ResponseEntity.ok(responseDto);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponseDto> refreshToken(
             @RequestBody @Valid RefreshRequestDto refreshTokenDto,
             BindingResult bindingResult) throws BindException {
+        log.info("Received request refresh token");
 
         requestValidator.validate(bindingResult);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.refreshToken(refreshTokenDto));
+        RefreshResponseDto responseDto = authService.refreshToken(refreshTokenDto);
+
+        log.info("Token refreshed successfully for user");
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 }

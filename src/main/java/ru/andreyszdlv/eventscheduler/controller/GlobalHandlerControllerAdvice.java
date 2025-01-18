@@ -1,6 +1,7 @@
 package ru.andreyszdlv.eventscheduler.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -15,6 +16,7 @@ import java.util.Locale;
 
 @ControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class GlobalHandlerControllerAdvice {
 
     private final MessageSource messageSource;
@@ -28,6 +30,8 @@ public class GlobalHandlerControllerAdvice {
                 HttpStatus.CONFLICT,
                 messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), locale)
         );
+
+        log.error("handleConflictException: {}", response);
 
         return response;
     }
@@ -45,6 +49,8 @@ public class GlobalHandlerControllerAdvice {
                 ex.getAllErrors().stream().map(ObjectError::getDefaultMessage).toList()
         );
 
+        log.error("handleBadRequestException: {}", response);
+
         return response;
     }
 
@@ -57,6 +63,8 @@ public class GlobalHandlerControllerAdvice {
                 HttpStatus.UNAUTHORIZED,
                 messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), locale)
         );
+
+        log.error("handleUnauthorizedException: {}", response);
 
         return response;
     }
