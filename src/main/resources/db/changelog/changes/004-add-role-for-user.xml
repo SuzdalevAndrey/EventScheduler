@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-
-    <include file="/db/changelog/changes/001-add-users-table.xml" />
-    <include file="/db/changelog/changes/002-add-categories-table.xml" />
-    <include file="/db/changelog/changes/003-add-events-table.xml" />
-    <include file="/db/changelog/changes/004-add-role-for-user.xml" />
-
+    <changeSet id="004-add-role-for-user" author="Suzdalev Andrey">
+        <addColumn tableName="users">
+            <column name="role" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

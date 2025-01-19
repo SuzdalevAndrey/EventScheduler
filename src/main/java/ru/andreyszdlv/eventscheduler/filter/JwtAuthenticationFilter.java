@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,6 +17,7 @@ import ru.andreyszdlv.eventscheduler.exception.InvalidTokenException;
 import ru.andreyszdlv.eventscheduler.service.JwtService;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -38,23 +40,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (token != null) {
                 jwtService.validateToken(token);
 
-                String username = jwtService.extractEmail(token);
-                log.info("Extracted username: {}", username);
+                String email = jwtService.extractEmail(token);
+                log.info("Extracted email: {}", email);
 
-                Authentication auth = new UsernamePasswordAuthenticationToken(username, null);
+                String role = jwtService.extractRole(token);
+                log.info("Extracted role: {}", role);
+
+                Authentication auth = new UsernamePasswordAuthenticationToken(
+                        email,
+                        null,
+                        List.of(new SimpleGrantedAuthority(role))
+                );
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-                log.info("User authenticated: {}", username);
+                log.info("User authenticated: {}", email);
             }
 
             filterChain.doFilter(request, response);
         } catch (InvalidTokenException ex) {
             log.error("Invalid token, send response unauthorized for user");
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("text/plain; charset=UTF-8");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(
-                    messageSource.getMessage("error.403.user.unauthorized", null, "error.401.user.unauthorized", request.getLocale())
+                    messageSource.getMessage("error.401.user.unauthorized", null, "error.401.user.unauthorized", request.getLocale())
             );
         }
     }

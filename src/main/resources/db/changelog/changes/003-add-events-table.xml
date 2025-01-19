@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="003-add-events-table" author="Suzdalev Andrey">
+        <createTable tableName="events">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="title" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+            <column name="category_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time" type="timestamp"/>
+        </createTable>
+    </changeSet>
+    
+    <changeSet id="003-add-foreign-key-for-category" author="Suzdalev Andrey">
+        <addForeignKeyConstraint
+                baseTableName="events"
+                baseColumnNames="category_id"
+                constraintName="fk_events_category"
+                referencedTableName="categories"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="003-add-foreign-key-for-author" author="Suzdalev Andrey">
+        <addForeignKeyConstraint
+                baseTableName="events"
+                baseColumnNames="author_id"
+                constraintName="fk_events_users"
+                referencedTableName="users"
+                referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

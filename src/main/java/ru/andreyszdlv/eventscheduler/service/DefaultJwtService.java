@@ -8,10 +8,12 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import ru.andreyszdlv.eventscheduler.enums.Role;
 import ru.andreyszdlv.eventscheduler.exception.InvalidTokenException;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Map;
 import java.util.function.Function;
 
 @Service
@@ -32,15 +34,15 @@ public class DefaultJwtService implements JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
     @Override
-    public String generateAccessToken(String email) {
+    public String generateAccessToken(String email, Role role) {
         log.info("Executing generateAccessToken in JwtSecurityService");
-        return generateToken(email, (long) lifeTimeAccessTokenInMinutes * 60 * 1000);
+        return generateToken(email, role.name(),(long) lifeTimeAccessTokenInMinutes * 60 * 1000);
     }
 
     @Override
-    public String generateRefreshToken(String email) {
+    public String generateRefreshToken(String email, Role role) {
         log.info("Executing generateRefreshToken in JwtSecurityService");
-        return generateToken(email, (long) lifeTimeRefreshTokenInMinutes * 60 * 1000);
+        return generateToken(email, role.name(), (long) lifeTimeRefreshTokenInMinutes * 60 * 1000);
     }
 
     @Override
@@ -60,9 +62,15 @@ public class DefaultJwtService implements JwtService {
         }
     }
 
-    private String generateToken(String email, long lifeTime) {
+    @Override
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    private String generateToken(String email, String role, long lifeTime) {
         return Jwts.builder()
                 .subject(email)
+                .claims(Map.of("role", role))
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + lifeTime))
                 .signWith(getSigningKey())
