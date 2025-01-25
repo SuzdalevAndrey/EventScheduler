@@ -19,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/events")
 public class EventController {
+    //todo остальные эндпоинты для event
 
     private final EventService eventService;
 

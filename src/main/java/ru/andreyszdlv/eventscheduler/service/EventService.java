@@ -42,7 +42,7 @@ public class EventService {
         for (int i = 0; i < count; i++) {
             String title = titles.get(new Random().nextInt(titles.size()));
             result.add(
-                    addEvent(new AddEventRequestDto(title, null, 1, LocalDateTime.now()))
+                    addEvent(new AddEventRequestDto(title, null, 4, LocalDateTime.now()))
             );
         }
 
